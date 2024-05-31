@@ -30,16 +30,20 @@ jobs:
       - name: Build the project
         run: npm run build
 
-      - name: SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@master
-        with:
-         projectBaseDir: .
-         args: >
-           -Dsonar.organization=cf-dev
-           -Dsonar.projectKey=nodejs-web-app
+      - name: Run SonarQube Scan
         env:
-         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+         SONAR_LOGIN: ${{ secrets.SONAR_TOKEN }}
+         SONAR_SCANNER_OPTS: -Xmx1024m
+        run: |
+         sonar-scanner \
+          -Dsonar.projectKey=node-web-app \
+          -Dsonar.organization=cf-dev \
+          -Dsonar.sources=. \
+          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+          -X
+
            
        
       
