@@ -13,10 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    env:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    
        
     steps:
       - name: Checkout code
@@ -33,11 +30,16 @@ jobs:
       - name: Build the project
         run: npm run build
 
-      - name: Run SonarQube analysis
+      - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@master
+        with:
+         projectBaseDir: .
+         args: >
+           -Dsonar.organization=cf-dev
+           -Dsonar.projectKey=nodejs-web-app
         env:
-           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}         
-           SONAR_HOST_URL: $ {{ secrets.SONAR_HOST_URL }}
+         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
            
        
       
