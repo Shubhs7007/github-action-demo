@@ -1,49 +1,66 @@
-
-name: CI/CD Pipeline
+name: SonarQube Analysis
 
 on:
   push:
     branches:
-      - dev1
+      - main
   pull_request:
     branches:
-      - dev1
+      - main
 
 jobs:
-  build:
+  sonarqube:
+    name: SonarQube Analysis
     runs-on: ubuntu-latest
 
-    
-       
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
+    - name: Set up JDK 11
+      uses: actions/setup-java@v2
+      with:
+        java-version: '11'
 
-      - name: Install dependencies
-        run: npm install
+    - name: Cache SonarQube dependencies
+      uses: actions/cache@v2
+      with:
+        path: ~/.sonar/cache
+        key: ${{ runner.os }}-sonar
 
-      - name: Build the project
-        run: npm run build
+    - name: Install SonarScanner
+      run: |
+        curl -sSLo sonar-scanner-cli.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip
+        unzip -o sonar-scanner-cli.zip -d $HOME/.sonar
+        mv $HOME/.sonar/sonar-scanner-4.6.2.2472-linux $HOME/.sonar/sonar-scanner
+        echo "$HOME/.sonar/sonar-scanner/bin" >> $GITHUB_PATH
 
-      - name: Run SonarQube Scan
-        env:
-         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-         SONAR_LOGIN: ${{ secrets.SONAR_TOKEN }}
-         SONAR_SCANNER_OPTS: -Xmx1024m
-        run: |
-         sonar-scanner \
-          -Dsonar.projectKey=node-web-app \
+    - name: Verify SonarScanner Installation
+      run: sonar-scanner --version
+
+    - name: Run SonarQube Scan
+      env:
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        SONAR_LOGIN: ${{ secrets.SONAR_TOKEN }}
+      run: |
+        sonar-scanner \
+          -Dsonar.projectKey=my_projec \
           -Dsonar.organization=cf-dev \
           -Dsonar.sources=. \
           -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
           -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
           -X
 
-           
-       
-      
+    - name: Quality Gate Status
+      id: quality_gate
+      run: |
+        # Fetch the quality gate status using SonarQube Web API
+        QUALITY_GATE_STATUS=$(curl -s -u ${{ secrets.SONAR_TOKEN }}: "${{ secrets.SONAR_HOST_URL }}/api/qualitygates/project_status?projectKey=my_project_key" | jq -r .projectStatus.status)
+        echo "Quality Gate Status: $QUALITY_GATE_STATUS"
+        echo "::set-output name=status::$QUALITY_GATE_STATUS"
+
+    - name: Fail if quality gate failed
+      if: steps.quality_gate.outputs.status != 'OK'
+      run: |
+        echo "Quality Gate failed."
+        exit 1
