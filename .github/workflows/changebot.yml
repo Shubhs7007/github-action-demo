@@ -38,7 +38,7 @@ jobs:
       - name: Run SonarQube analysis
         run: |
           sonar-scanner \
-            -Dsonar.projectKey=your-project-key \
+            -Dsonar.projectKey=github-action-demo \
             -Dsonar.sources=. \
             -Dsonar.host.url=${{ env.SONARQUBE_HOST }} \
             -Dsonar.login=${{ env.SONAR_TOKEN }}
@@ -47,7 +47,7 @@ jobs:
         id: sonarqube
         run: |
           quality_gate_status=$(curl -s -u ${{ env.SONAR_TOKEN }}: \
-            "${{ env.SONARQUBE_HOST }}/api/qualitygates/project_status?projectKey=your-project-key" \
+            "${{ env.SONARQUBE_HOST }}/api/qualitygates/project_status?projectKey=github-action-demo" \
             | jq -r '.projectStatus.status')
           echo "Quality Gate status: $quality_gate_status"
           if [[ "$quality_gate_status" != "OK" ]]; then
