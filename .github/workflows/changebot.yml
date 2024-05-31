@@ -36,8 +36,8 @@ jobs:
       - name: Run SonarQube analysis
         uses: sonarsource/sonarqube-sacn-action@dev1
         env:
-           SONAR_TOKEN: ${{ secretes.SONAR_TOKEN }}         
-           SONAR_HOST_URL: $ {{ secretes.SONAR_HOST_URL }}
+           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}         
+           SONAR_HOST_URL: $ {{ secrets.SONAR_HOST_URL }}
            
        
       
