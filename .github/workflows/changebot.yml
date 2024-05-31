@@ -17,9 +17,7 @@ jobs:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SONARQUBE_HOST: ${{ secrets.SONARQUBE_HOST }}
        
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -36,23 +34,10 @@ jobs:
         run: npm run build
 
       - name: Run SonarQube analysis
-        run: |
-          sonar-scanner \
-            -Dsonar.projectKey=github-action-demo \
-            -Dsonar.sources=. \
-            -Dsonar.host.url=${{ env.SONARQUBE_HOST }} \
-            -Dsonar.login=${{ env.SONAR_TOKEN }}
-
-      - name: Check SonarQube Quality Gate
-        id: sonarqube
-        run: |
-          quality_gate_status=$(curl -s -u ${{ env.SONAR_TOKEN }}: \
-            "${{ env.SONARQUBE_HOST }}/api/qualitygates/project_status?projectKey=github-action-demo" \
-            | jq -r '.projectStatus.status')
-          echo "Quality Gate status: $quality_gate_status"
-          if [[ "$quality_gate_status" != "OK" ]]; then
-            echo "Quality Gate failed"
-            exit 1
-          fi
-
+        uses: sonarsource/sonarqube-sacn-action@dev1
+        env:
+           SONAR_TOKEN: ${{ secretes.SONAR_TOKEN }}         
+           SONAR_HOST_URL: $ {{ secretes.SONAR_HOST_URL }}
+           
+       
       
